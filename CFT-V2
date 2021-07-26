@@ -1,44 +1,41 @@
 AWSTemplateFormatVersion: "2010-09-09"
 
-Description:
-  Create a VPC and Private and Public Subnet
- 
-Metadata:
-  template metadata
+Description: Create a VPC and Private and Public Subnet
+
+Metadata: template metadata
 
 Parameters:
-  VPCCIDR: 
+  VPCCIDR:
     Default: 10.0.0.0/16
     Description: Enter the IP range for this VPC
     Type: String
 
-  PublicSN1CIDR: 
+  PublicSN1CIDR:
     Default: 10.1.0.0/24
     Description: Enter the IP range for this PublicSubnet1
     Type: String
 
-  PrivateSN1CIDR: 
+  PrivateSN1CIDR:
     Default: 10.2.0.0/24
     Description: Enter the IP range for this PrivateSubnet1
     Type: String
 
-
-Resources: 
+Resources:
   VPC:
-    Type: AWS::EC2::VPC 
+    Type: AWS::EC2::VPC
     Properties:
-      CidrBlock:10.0.0.0/16
+      CidrBlock: !Ref VPCCIDR
       EnableDnsHostnames: false
       EnableDnsSupport: false
       InstanceTenancy: Default
-      Tags: 
+      Tags:
         - Key: Name
           Value: CFT-VPC
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
-    Properties: 
-      Tags: 
+    Properties:
+      Tags:
         - Key: Name
           Value: CFT-IGW
 
@@ -46,36 +43,36 @@ Resources:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
       VpcId: !Ref VPC
-      InternetGatewayId: !Ref InetrnetGateway
+      InternetGatewayId: !Ref InternetGateway
 
-  PublicSN1
+  PublicSN1:
     Type: AWS::EC2::Subnet
-    Properties: 
+    Properties:
       AssignIpv6AddressOnCreation: false
       AvailabilityZone: ap-southeast-1a
       CidrBlock: !Ref PublicSN1CIDR
       MapPublicIpOnLaunch: true
-      Tags: 
+      Tags:
         - Key: Name
           Value: PublicSN1
       VpcId: !Ref VPC
 
   PrivateSN1:
     Type: AWS::EC2::Subnet
-    Properties: 
+    Properties:
       AssignIpv6AddressOnCreation: false
       AvailabilityZone: ap-southeast-1a
       CidrBlock: !Ref PrivateSN1CIDR
       MapPublicIpOnLaunch: false
-      Tags: 
+      Tags:
         - Key: Name
           Value: PrivateSN1
       VpcId: !Ref VPC
 
   PublicRT:
     Type: AWS::EC2::RouteTable
-    Properties: 
-      Tags: 
+    Properties:
+      Tags:
         - Key: Name
           Value: PublicRT
       VpcId: !Ref VPC
@@ -89,33 +86,33 @@ Resources:
 
   PublicSubnetRTAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties: 
+    Properties:
       RouteTableId: !Ref PublicRT
       SubnetId: !Ref PublicSN1
 
   EIP:
-    Type: 'AWS::EC2::EIP'
+    Type: "AWS::EC2::EIP"
     Properties:
-      Domain: vpc
+      Domain: VPC
       Tags:
         - Key: Name
           Value: NATEIP
+    DependsOn: AttachGateway
 
   NatGateway:
     Type: AWS::EC2::NatGateway
-    Properties: 
-      AllocationId: !GetAtt 'EIP.AllocationId'
+    Properties:
+      AllocationId: !GetAtt "EIP.AllocationId"
       ConnectivityType: Public
       SubnetId: !Ref PublicSN1
-      Tags: 
+      Tags:
         - Key: Name
           Value: NATGW
 
-
   PrivateRT:
     Type: AWS::EC2::RouteTable
-    Properties: 
-      Tags: 
+    Properties:
+      Tags:
         - Key: Name
           Value: PrivateRT
       VpcId: !Ref VPC
@@ -124,13 +121,11 @@ Resources:
     Type: AWS::EC2::Route
     Properties:
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NATGateway
+      NatGatewayId: !Ref NatGateway
       RouteTableId: !Ref PrivateRT
 
   PrivateSubnetRTAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties: 
+    Properties:
       RouteTableId: !Ref PrivateRT
       SubnetId: !Ref PrivateSN1
-
-

@@ -1,15 +1,15 @@
-name: Trufflehog Leaked Secrets Scan
+name: Trufflehog_Leaked_Secrets_Scan
 on: [pull_request]
 jobs:
   TruffleHog:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout_code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: TruffleHog OSS scan
-        uses: Satthvik/Cloudformation@v3.4.3
+        uses: trufflesecurity/trufflehog@v3.4.3
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
